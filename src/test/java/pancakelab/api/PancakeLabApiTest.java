@@ -21,8 +21,20 @@ public class PancakeLabApiTest {
 
         shouldReportCreatedStatusForNewOrder(api, handle);
         shouldCancelNewOrderAndReportCancelledStatus(api);
+        shouldAddIngredientWhileCreated(api);
 
         System.out.println("PancakeLabApiTest passed");
+    }
+
+    private static void shouldAddIngredientWhileCreated(PancakeLabApi api) {
+        OrderHandle createdHandle = api.startOrder("dojo", "103C");
+        try {
+            api.addIngredient(createdHandle, "plain", "banana");
+        } catch (Exception e) {
+            throw new AssertionError("addIngredient should succeed for CREATED order", e);
+        }
+        OrderStatus statusAfterAdd = api.statusOf(createdHandle);
+        assert statusAfterAdd == OrderStatus.CREATED : "status should remain CREATED after adding ingredient";
     }
 
     private static void shouldCancelNewOrderAndReportCancelledStatus(PancakeLabApi api) {
