@@ -22,6 +22,22 @@ public class PancakeLabApiTest {
         shouldAddIngredientWhileCreated(api);
         shouldCompleteOrderFromCreated(api);
         shouldRejectAddIngredientAfterCompleted(api);
+        shouldRejectCancelAfterCompleted(api);
+    }
+
+    private static void shouldRejectCancelAfterCompleted(PancakeLabApi api) {
+        OrderHandle handle = api.startOrder("dojo", "106F");
+        api.completeOrder(handle);
+        try {
+            api.cancelOrder(handle);
+            throw new AssertionError("cancelOrder should fail after order is COMPLETED");
+        } catch (IllegalStateException expected) {
+            if (expected.getMessage() == null || !expected.getMessage().contains("COMPLETED")) {
+                throw new AssertionError("Expected message to mention COMPLETED state", expected);
+            }
+        }
+        OrderStatus statusAfterAttempt = api.statusOf(handle);
+        assert statusAfterAttempt == OrderStatus.COMPLETED : "status should remain COMPLETED after failed cancelOrder";
     }
 
     private static void shouldRejectAddIngredientAfterCompleted(PancakeLabApi api) {
