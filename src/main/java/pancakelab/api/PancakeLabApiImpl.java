@@ -50,7 +50,7 @@ final class PancakeLabApiImpl implements PancakeLabApi {
         ensureKnownHandle(handle);
         OrderStatus status = orderStatuses.get(handle);
         if (status != OrderStatus.CREATED) {
-            throw new IllegalStateException("Cannot add ingredients unless order is CREATED");
+            throw new IllegalStateException("Cannot add ingredients when order status is " + status);
         }
         // No persistence yet; accept call and keep status as CREATED.
     }
