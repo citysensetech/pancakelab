@@ -18,7 +18,6 @@ public class PancakeLabApiTest {
 
         System.out.println("Step 2: verifying unsupported operations fail fast");
         // Step 2: unsupported operations still fail fast
-        expectUnsupported(() -> api.completeOrder(handle), "completeOrder");
         expectUnsupported(() -> api.markPrepared(handle), "markPrepared");
         expectUnsupported(() -> api.dispatch(handle), "dispatch");
 
@@ -31,8 +30,24 @@ public class PancakeLabApiTest {
         System.out.println("Step 5: adding ingredient while CREATED and keeping status CREATED");
         // Step 5: adding ingredient in CREATED succeeds and keeps status CREATED
         shouldAddIngredientWhileCreated(api);
+        System.out.println("Step 6: completing order in CREATED transitions to COMPLETED");
+        // Step 6: completing an order in CREATED should succeed and set COMPLETED
+        shouldCompleteOrderFromCreated(api);
 
         System.out.println("PancakeLabApiTest passed");
+    }
+
+    private static void shouldCompleteOrderFromCreated(PancakeLabApi api) {
+        System.out.println(" - starting order for completion");
+        OrderHandle handle = api.startOrder("dojo", "104D");
+        try {
+            api.completeOrder(handle);
+            System.out.println(" - completeOrder succeeded for CREATED order");
+        } catch (Exception e) {
+            throw new AssertionError("completeOrder should succeed for CREATED order", e);
+        }
+        OrderStatus statusAfterComplete = api.statusOf(handle);
+        assert statusAfterComplete == OrderStatus.COMPLETED : "status should be COMPLETED after completion";
     }
 
     private static void shouldAddIngredientWhileCreated(PancakeLabApi api) {

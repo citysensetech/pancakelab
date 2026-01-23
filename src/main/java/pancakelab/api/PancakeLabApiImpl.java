@@ -57,7 +57,12 @@ final class PancakeLabApiImpl implements PancakeLabApi {
 
     @Override
     public void completeOrder(OrderHandle handle) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        ensureKnownHandle(handle);
+        OrderStatus status = orderStatuses.get(handle);
+        if (status != OrderStatus.CREATED) {
+            throw new IllegalStateException("Cannot complete order unless it is in CREATED state");
+        }
+        orderStatuses.put(handle, OrderStatus.COMPLETED);
     }
 
     @Override
