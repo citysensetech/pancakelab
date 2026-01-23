@@ -47,7 +47,12 @@ final class PancakeLabApiImpl implements PancakeLabApi {
 
     @Override
     public void addIngredient(OrderHandle handle, String pancakeName, String ingredientName) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        ensureKnownHandle(handle);
+        OrderStatus status = orderStatuses.get(handle);
+        if (status != OrderStatus.CREATED) {
+            throw new IllegalStateException("Cannot add ingredients unless order is CREATED");
+        }
+        // No persistence yet; accept call and keep status as CREATED.
     }
 
     @Override
