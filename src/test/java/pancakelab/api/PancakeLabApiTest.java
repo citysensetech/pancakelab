@@ -33,8 +33,28 @@ public class PancakeLabApiTest {
         System.out.println("Step 6: completing order in CREATED transitions to COMPLETED");
         // Step 6: completing an order in CREATED should succeed and set COMPLETED
         shouldCompleteOrderFromCreated(api);
+        System.out.println("Step 7: addIngredient after COMPLETED must fail and keep status COMPLETED");
+        // Step 7: after completion, adding ingredient must fail and status stay COMPLETED
+        shouldRejectAddIngredientAfterCompleted(api);
 
         System.out.println("PancakeLabApiTest passed");
+    }
+
+    private static void shouldRejectAddIngredientAfterCompleted(PancakeLabApi api) {
+        System.out.println(" - starting order for post-completion ingredient attempt");
+        OrderHandle handle = api.startOrder("dojo", "105E");
+        api.completeOrder(handle);
+        try {
+            api.addIngredient(handle, "plain", "strawberry");
+            throw new AssertionError("addIngredient should fail after order is COMPLETED");
+        } catch (IllegalStateException expected) {
+            if (expected.getMessage() == null || !expected.getMessage().contains("COMPLETED")) {
+                throw new AssertionError("Expected message to mention COMPLETED state", expected);
+            }
+            System.out.println(" - addIngredient correctly rejected after COMPLETED");
+        }
+        OrderStatus statusAfterAttempt = api.statusOf(handle);
+        assert statusAfterAttempt == OrderStatus.COMPLETED : "status should remain COMPLETED after failed addIngredient";
     }
 
     private static void shouldCompleteOrderFromCreated(PancakeLabApi api) {
