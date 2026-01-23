@@ -1,7 +1,5 @@
 package main.java.pancakelab.api;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import main.java.pancakelab.concurrency.LockManager;
 import main.java.pancakelab.domain.valueobject.OrderHandle;
@@ -22,7 +20,6 @@ final class PancakeLabApiImpl implements PancakeLabApi {
     private final OrderService orderService;
     private final KitchenService kitchenService;
     private final DeliveryService deliveryService;
-    private final Map<OrderHandle, OrderStatus> orderStatuses = new HashMap<>();
 
     PancakeLabApiImpl(InputValidator validator,
                       LockManager lockManager,
@@ -41,58 +38,62 @@ final class PancakeLabApiImpl implements PancakeLabApi {
     @Override
     public OrderHandle startOrder(String building, String room) {
         OrderHandle handle = new OrderHandle(UUID.randomUUID().toString());
-        orderStatuses.put(handle, OrderStatus.CREATED);
+        repository.save(handle, OrderStatus.CREATED);
         return handle;
     }
 
     @Override
     public void addIngredient(OrderHandle handle, String pancakeName, String ingredientName) {
         ensureKnownHandle(handle);
-        OrderStatus status = orderStatuses.get(handle);
+        OrderStatus status = repository.findStatus(handle);
         if (status != OrderStatus.CREATED) {
             throw new IllegalStateException("Cannot add ingredients when order status is " + status);
         }
-        // No persistence yet; accept call and keep status as CREATED.
     }
 
     @Override
     public void completeOrder(OrderHandle handle) {
         ensureKnownHandle(handle);
-        OrderStatus status = orderStatuses.get(handle);
+        OrderStatus status = repository.findStatus(handle);
         if (status != OrderStatus.CREATED) {
             throw new IllegalStateException("Cannot complete order unless it is in CREATED state");
         }
-        orderStatuses.put(handle, OrderStatus.COMPLETED);
+        repository.save(handle, OrderStatus.COMPLETED);
     }
 
     @Override
     public void cancelOrder(OrderHandle handle) {
         ensureKnownHandle(handle);
-        OrderStatus status = orderStatuses.get(handle);
+        OrderStatus status = repository.findStatus(handle);
         if (status != OrderStatus.CREATED) {
             throw new IllegalStateException("Cannot cancel order when status is " + status);
         }
-        orderStatuses.put(handle, OrderStatus.CANCELLED);
+        repository.save(handle, OrderStatus.CANCELLED);
     }
 
     @Override
     public void markPrepared(OrderHandle handle) {
         ensureKnownHandle(handle);
-        OrderStatus status = orderStatuses.get(handle);
+        OrderStatus status = repository.findStatus(handle);
         if (status != OrderStatus.COMPLETED) {
             throw new UnsupportedOperationException("Cannot mark prepared when status is " + status);
         }
-        orderStatuses.put(handle, OrderStatus.PREPARED);
+        repository.save(handle, OrderStatus.PREPARED);
     }
 
     @Override
     public void dispatch(OrderHandle handle) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        ensureKnownHandle(handle);
+        OrderStatus status = repository.findStatus(handle);
+        if (status != OrderStatus.PREPARED) {
+            throw new UnsupportedOperationException("Cannot dispatch when status is " + status);
+        }
+        repository.delete(handle);
     }
 
     @Override
     public OrderStatus statusOf(OrderHandle handle) {
-        OrderStatus status = orderStatuses.get(handle);
+        OrderStatus status = repository.findStatus(handle);
         if (status == null) {
             throw new IllegalArgumentException("Unknown order handle");
         }
@@ -100,7 +101,7 @@ final class PancakeLabApiImpl implements PancakeLabApi {
     }
 
     private void ensureKnownHandle(OrderHandle handle) {
-        if (!orderStatuses.containsKey(handle)) {
+        if (!repository.exists(handle)) {
             throw new IllegalArgumentException("Unknown order handle");
         }
     }
