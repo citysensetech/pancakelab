@@ -77,7 +77,12 @@ final class PancakeLabApiImpl implements PancakeLabApi {
 
     @Override
     public void markPrepared(OrderHandle handle) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        ensureKnownHandle(handle);
+        OrderStatus status = orderStatuses.get(handle);
+        if (status != OrderStatus.COMPLETED) {
+            throw new UnsupportedOperationException("Cannot mark prepared when status is " + status);
+        }
+        orderStatuses.put(handle, OrderStatus.PREPARED);
     }
 
     @Override

@@ -24,6 +24,24 @@ public class PancakeLabApiTest {
         shouldRejectAddIngredientAfterCompleted(api);
         shouldRejectCancelAfterCompleted(api);
         shouldMarkPreparedAfterCompleted(api);
+        shouldDispatchPreparedAndBecomeUnreachable(api);
+    }
+
+    private static void shouldDispatchPreparedAndBecomeUnreachable(PancakeLabApi api) {
+        OrderHandle handle = api.startOrder("dojo", "108H");
+        api.completeOrder(handle);
+        api.markPrepared(handle);
+        try {
+            api.dispatch(handle);
+        } catch (Exception e) {
+            throw new AssertionError("dispatch should succeed for PREPARED order", e);
+        }
+        try {
+            api.statusOf(handle);
+            throw new AssertionError("statusOf should fail after dispatch");
+        } catch (IllegalArgumentException expected) {
+            // expected: order no longer reachable
+        }
     }
 
     private static void shouldMarkPreparedAfterCompleted(PancakeLabApi api) {
