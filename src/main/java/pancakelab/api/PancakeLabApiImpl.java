@@ -68,6 +68,10 @@ final class PancakeLabApiImpl implements PancakeLabApi {
     @Override
     public void cancelOrder(OrderHandle handle) {
         ensureKnownHandle(handle);
+        OrderStatus status = orderStatuses.get(handle);
+        if (status != OrderStatus.CREATED) {
+            throw new IllegalStateException("Cannot cancel order when status is " + status);
+        }
         orderStatuses.put(handle, OrderStatus.CANCELLED);
     }
 

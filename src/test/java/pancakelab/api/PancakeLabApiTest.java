@@ -23,6 +23,19 @@ public class PancakeLabApiTest {
         shouldCompleteOrderFromCreated(api);
         shouldRejectAddIngredientAfterCompleted(api);
         shouldRejectCancelAfterCompleted(api);
+        shouldMarkPreparedAfterCompleted(api);
+    }
+
+    private static void shouldMarkPreparedAfterCompleted(PancakeLabApi api) {
+        OrderHandle handle = api.startOrder("dojo", "107G");
+        api.completeOrder(handle);
+        try {
+            api.markPrepared(handle);
+        } catch (Exception e) {
+            throw new AssertionError("markPrepared should succeed for COMPLETED order", e);
+        }
+        OrderStatus statusAfterPrepare = api.statusOf(handle);
+        assert statusAfterPrepare == OrderStatus.PREPARED : "status should be PREPARED after markPrepared";
     }
 
     private static void shouldRejectCancelAfterCompleted(PancakeLabApi api) {
