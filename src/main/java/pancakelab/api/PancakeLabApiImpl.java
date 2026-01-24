@@ -1,5 +1,6 @@
 package main.java.pancakelab.api;
 
+import java.util.Map;
 import java.util.UUID;
 import main.java.pancakelab.concurrency.LockManager;
 import main.java.pancakelab.domain.valueobject.OrderHandle;
@@ -49,6 +50,7 @@ final class PancakeLabApiImpl implements PancakeLabApi {
         if (status != OrderStatus.CREATED) {
             throw new IllegalStateException("Cannot add ingredients when order status is " + status);
         }
+        repository.addIngredient(handle, pancakeName, ingredientName);
     }
 
     @Override
@@ -98,6 +100,12 @@ final class PancakeLabApiImpl implements PancakeLabApi {
             throw new IllegalArgumentException("Unknown order handle");
         }
         return status;
+    }
+
+    @Override
+    public Map<String, java.util.List<String>> pancakesOf(OrderHandle handle) {
+        ensureKnownHandle(handle);
+        return repository.findPancakes(handle);
     }
 
     private void ensureKnownHandle(OrderHandle handle) {

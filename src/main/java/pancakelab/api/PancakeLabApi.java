@@ -1,5 +1,7 @@
 package main.java.pancakelab.api;
 
+import java.util.List;
+import java.util.Map;
 import main.java.pancakelab.domain.valueobject.OrderHandle;
 import main.java.pancakelab.domain.valueobject.OrderStatus;
 
@@ -17,4 +19,6 @@ public interface PancakeLabApi {
     void dispatch(OrderHandle handle);
 
     OrderStatus statusOf(OrderHandle handle);
+
+    Map<String, List<String>> pancakesOf(OrderHandle handle);
 }
