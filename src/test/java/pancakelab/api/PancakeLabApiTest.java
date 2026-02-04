@@ -7,6 +7,7 @@ import main.java.pancakelab.domain.valueobject.OrderStatus;
 
 public class PancakeLabApiTest {
     public static void main(String[] args) {
+        System.out.println("=== PancakeLabApiTest run start ===");
         PancakeLabApi api = PancakeLabApplication.bootstrap();
         assert api != null : "API bootstrap should not return null";
 
@@ -14,8 +15,12 @@ public class PancakeLabApiTest {
         assert handle != null : "startOrder should return a handle";
         assert !handle.value().isBlank() : "handle value should not be blank";
 
+        System.out.println("Starting: expect unsupported markPrepared");
         expectUnsupported(() -> api.markPrepared(handle), "markPrepared");
+        System.out.println("Completed: expect unsupported markPrepared");
+        System.out.println("Starting: expect unsupported dispatch");
         expectUnsupported(() -> api.dispatch(handle), "dispatch");
+        System.out.println("Completed: expect unsupported dispatch");
 
         shouldReportCreatedStatusForNewOrder(api, handle);
         shouldCancelNewOrderAndReportCancelledStatus(api);
@@ -25,10 +30,12 @@ public class PancakeLabApiTest {
         shouldRejectCancelAfterCompleted(api);
         shouldMarkPreparedAfterCompleted(api);
         shouldDispatchPreparedAndBecomeUnreachable(api);
+        System.out.println("=== ALL TESTS PASSED ===");
     }
 
     // Dispatching a PREPARED order should succeed and make it unreachable via statusOf
     private static void shouldDispatchPreparedAndBecomeUnreachable(PancakeLabApi api) {
+        System.out.println("Starting: shouldDispatchPreparedAndBecomeUnreachable");
         OrderHandle handle = api.startOrder("dojo", "108H");
         api.completeOrder(handle);
         api.markPrepared(handle);
@@ -43,10 +50,12 @@ public class PancakeLabApiTest {
         } catch (IllegalArgumentException expected) {
             // expected: order no longer reachable
         }
+        System.out.println("Completed: shouldDispatchPreparedAndBecomeUnreachable");
     }
 
     // A COMPLETED order can be marked PREPARED and status updates accordingly
     private static void shouldMarkPreparedAfterCompleted(PancakeLabApi api) {
+        System.out.println("Starting: shouldMarkPreparedAfterCompleted");
         OrderHandle handle = api.startOrder("dojo", "107G");
         api.completeOrder(handle);
         try {
@@ -56,10 +65,12 @@ public class PancakeLabApiTest {
         }
         OrderStatus statusAfterPrepare = api.statusOf(handle);
         assert statusAfterPrepare == OrderStatus.PREPARED : "status should be PREPARED after markPrepared";
+        System.out.println("Completed: shouldMarkPreparedAfterCompleted");
     }
 
     // Once COMPLETED, cancelling must fail and status stays COMPLETED
     private static void shouldRejectCancelAfterCompleted(PancakeLabApi api) {
+        System.out.println("Starting: shouldRejectCancelAfterCompleted");
         OrderHandle handle = api.startOrder("dojo", "106F");
         api.completeOrder(handle);
         try {
@@ -72,10 +83,12 @@ public class PancakeLabApiTest {
         }
         OrderStatus statusAfterAttempt = api.statusOf(handle);
         assert statusAfterAttempt == OrderStatus.COMPLETED : "status should remain COMPLETED after failed cancelOrder";
+        System.out.println("Completed: shouldRejectCancelAfterCompleted");
     }
 
     // Once COMPLETED, adding ingredients must fail and status stays COMPLETED
     private static void shouldRejectAddIngredientAfterCompleted(PancakeLabApi api) {
+        System.out.println("Starting: shouldRejectAddIngredientAfterCompleted");
         OrderHandle handle = api.startOrder("dojo", "105E");
         api.completeOrder(handle);
         try {
@@ -88,10 +101,12 @@ public class PancakeLabApiTest {
         }
         OrderStatus statusAfterAttempt = api.statusOf(handle);
         assert statusAfterAttempt == OrderStatus.COMPLETED : "status should remain COMPLETED after failed addIngredient";
+        System.out.println("Completed: shouldRejectAddIngredientAfterCompleted");
     }
 
     // Completing from CREATED succeeds and sets status to COMPLETED
     private static void shouldCompleteOrderFromCreated(PancakeLabApi api) {
+        System.out.println("Starting: shouldCompleteOrderFromCreated");
         OrderHandle handle = api.startOrder("dojo", "104D");
         try {
             api.completeOrder(handle);
@@ -100,10 +115,12 @@ public class PancakeLabApiTest {
         }
         OrderStatus statusAfterComplete = api.statusOf(handle);
         assert statusAfterComplete == OrderStatus.COMPLETED : "status should be COMPLETED after completion";
+        System.out.println("Completed: shouldCompleteOrderFromCreated");
     }
 
     // Adding ingredients in CREATED succeeds and leaves status at CREATED
     private static void shouldAddIngredientWhileCreated(PancakeLabApi api) {
+        System.out.println("Starting: shouldAddIngredientWhileCreated");
         OrderHandle createdHandle = api.startOrder("dojo", "103C");
         try {
             api.addIngredient(createdHandle, "plain", "banana");
@@ -112,20 +129,25 @@ public class PancakeLabApiTest {
         }
         OrderStatus statusAfterAdd = api.statusOf(createdHandle);
         assert statusAfterAdd == OrderStatus.CREATED : "status should remain CREATED after adding ingredient";
+        System.out.println("Completed: shouldAddIngredientWhileCreated");
     }
 
     // Cancelling a fresh order sets status to CANCELLED
     private static void shouldCancelNewOrderAndReportCancelledStatus(PancakeLabApi api) {
+        System.out.println("Starting: shouldCancelNewOrderAndReportCancelledStatus");
         OrderHandle cancelHandle = api.startOrder("dojo", "102B");
         api.cancelOrder(cancelHandle);
         OrderStatus statusAfterCancel = api.statusOf(cancelHandle);
         assert statusAfterCancel == OrderStatus.CANCELLED : "cancelled order should be in CANCELLED status";
+        System.out.println("Completed: shouldCancelNewOrderAndReportCancelledStatus");
     }
 
     // Fresh order status should be CREATED
     private static void shouldReportCreatedStatusForNewOrder(PancakeLabApi api, OrderHandle handle) {
+        System.out.println("Starting: shouldReportCreatedStatusForNewOrder");
         OrderStatus status = api.statusOf(handle);
         assert status == OrderStatus.CREATED : "new order should be in CREATED status";
+        System.out.println("Completed: shouldReportCreatedStatusForNewOrder");
     }
 
     // Helper to assert unsupported operations still throw
