@@ -165,3 +165,25 @@ Pancake Lab demonstrates how a small system can remain robust and expressive by:
 The project is complete within its defined scope and ready for controlled evolution.
 
 
+Claro 👍
+Segue o **gabarito direto**, limpo, sem explicações — pronto para entrega.
+
+---
+
+Exercices:
+
+1. Yes
+2. No
+3. No
+4. 2
+5. 8
+6. b
+7. True
+8. b
+9. a
+10. a
+
+
+
+
+
