@@ -5,12 +5,23 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import main.java.pancakelab.domain.ingredient.ForbiddenCombinationPolicy;
 import main.java.pancakelab.domain.valueobject.OrderHandle;
 import main.java.pancakelab.domain.valueobject.OrderStatus;
 
 public class InMemoryOrderRepository {
     private final Map<OrderHandle, OrderStatus> statuses = new HashMap<>();
     private final Map<OrderHandle, Map<String, List<String>>> pancakes = new HashMap<>();
+    private final ForbiddenCombinationPolicy combinationPolicy;
+
+    public InMemoryOrderRepository() {
+        this(new ForbiddenCombinationPolicy(Collections.emptyList()));
+    }
+
+    public InMemoryOrderRepository(ForbiddenCombinationPolicy combinationPolicy) {
+        this.combinationPolicy = Objects.requireNonNull(combinationPolicy);
+    }
 
     public void save(OrderHandle handle, OrderStatus status) {
         statuses.put(handle, status);
@@ -20,6 +31,7 @@ public class InMemoryOrderRepository {
     public void addIngredient(OrderHandle handle, String pancakeName, String ingredientName) {
         Map<String, List<String>> byName = pancakes.computeIfAbsent(handle, key -> new HashMap<>());
         List<String> ingredients = byName.computeIfAbsent(pancakeName, key -> new ArrayList<>());
+        combinationPolicy.validate(ingredients, ingredientName);
         ingredients.add(ingredientName);
     }
 
